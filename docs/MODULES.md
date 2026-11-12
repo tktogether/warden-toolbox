@@ -32,7 +32,7 @@
 1. 环境变量覆盖：`WARDEN_GATEWAY_BOOTSTRAP`、`NODE_WARDEN_BOOTSTRAP`。
 2. 已安装路径：`/opt/warden-gateway/bootstrap.sh`、`/opt/node-warden/bootstrap.sh`。
 3. 同仓检出：`$TOOLBOX_ROOT/bootstrap.sh`、其上级目录的 `bootstrap.sh`、当前目录的 `bootstrap.sh`。
-4. 下载：`https://raw.githubusercontent.com/<项目仓库>/main/bootstrap.sh`，按 raw.githubusercontent.com、gh-proxy.com、ghfast.top、ghproxy.net 顺序尝试（设置 `TOOLBOX_GITHUB_PROXY` 时该前缀排在最前），单地址连接超时 10 秒、总超时 90 秒，写入临时目录后校验非空且首行为 `#!`。
+4. 下载：`https://raw.githubusercontent.com/<项目仓库>/main/bootstrap.sh`，按 raw.githubusercontent.com、gh-proxy.com、ghfast.top、ghproxy.net 顺序尝试（设置 `TOOLBOX_GITHUB_PROXY` 时该前缀排在最前），单地址连接超时 10 秒、总超时 90 秒、失败立即切换下一个通道，写入临时目录后校验非空且首行为 `#!`。
 
 解析由 `toolbox/lib/common.sh` 的 `resolve_bootstrap` 完成，成功时输出路径，失败时输出四条处理建议并返回非零。
 

@@ -265,7 +265,7 @@ bootstrap_url_candidates() {
 bootstrap_fetch() {
   local url=$1 dest=$2
   if have_cmd curl; then
-    curl -fsSL --connect-timeout 10 --max-time 90 --retry 1 --retry-delay 2 -o "$dest" "$url"
+    curl -fsSL --connect-timeout 10 --max-time 90 --retry 0 -o "$dest" "$url"
     return
   fi
   if have_cmd wget; then
