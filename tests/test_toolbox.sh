@@ -142,6 +142,16 @@ check_contains "提示含环境变量" "$out" "DEMO_ENV=/path/to/bootstrap.sh"
 check_contains "提示含已安装路径" "$out" "/opt/example/bootstrap.sh"
 check_contains "提示含源码目录" "$out" "bootstrap.sh <操作>"
 
+mapfile -t cands < <( ( source "$COMMON"; bootstrap_url_candidates example/example ) 2>/dev/null )
+check_contains "下载首选直连地址" "${cands[0]:-}" "https://raw.githubusercontent.com/example/example/main/bootstrap.sh"
+check_contains "下载次选 gh-proxy" "${cands[1]:-}" "https://gh-proxy.com/https://raw.githubusercontent.com/example/example/main/bootstrap.sh"
+check_contains "下载三选 ghfast" "${cands[2]:-}" "ghfast.top/"
+check_contains "下载四选 ghproxy" "${cands[3]:-}" "ghproxy.net/"
+
+mapfile -t cands < <( ( export TOOLBOX_GITHUB_PROXY="https://proxy.example"; source "$COMMON"; bootstrap_url_candidates example/example ) 2>/dev/null )
+check_contains "自定义代理排在最前" "${cands[1]:-}" "https://proxy.example/https://raw.githubusercontent.com/example/example/main/bootstrap.sh"
+if ( source "$COMMON"; declare -f bootstrap_fetch >/dev/null ); then ok "提供短超时下载函数"; else bad "提供短超时下载函数" "bootstrap_fetch 未定义"; fi
+
 # ---- 项目动作转发 ----
 out=$(WARDEN_GATEWAY_BOOTSTRAP="$TMP_DIR/fake-gateway.sh" bash "$TOOLBOX" gateway status 2>&1)
 rc=$?

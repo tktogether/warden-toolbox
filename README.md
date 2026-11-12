@@ -73,7 +73,7 @@ bash tests/test_toolbox.sh              # 本仓库测试
 | `TOOLBOX_REPO` | 自举使用的仓库，默认 `tktogether/warden-toolbox` |
 | `TOOLBOX_BRANCH` | 自举使用的分支，默认 `main` |
 | `TOOLBOX_ARCHIVE_URLS` | 自举源码包地址列表，空格分隔 |
-| `TOOLBOX_GITHUB_PROXY` | 自举时优先使用的 GitHub 代理前缀 |
+| `TOOLBOX_GITHUB_PROXY` | 自举和 bootstrap.sh 下载时优先使用的 GitHub 代理前缀 |
 | `BBR_STATE_DIR` | BBR 回滚记录目录，默认 `/var/lib/warden-toolbox/bbr` |
 
 ## 安全约束

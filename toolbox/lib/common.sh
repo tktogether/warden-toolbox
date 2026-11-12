@@ -246,19 +246,47 @@ bootstrap_same_repo_paths() {
   fi
 }
 
+# 下载候选地址：直连优先，其次公共 GitHub 代理，最后自定义代理前缀。
+# TOOLBOX_GITHUB_PROXY 设置时作为第一个代理前缀使用。
+bootstrap_url_candidates() {
+  local repo=$1
+  local raw="https://raw.githubusercontent.com/$repo/main/bootstrap.sh"
+  local custom=${TOOLBOX_GITHUB_PROXY:-}
+  printf '%s\n' "$raw"
+  if [[ -n "$custom" ]]; then
+    printf '%s/%s\n' "${custom%/}" "$raw"
+  fi
+  printf 'https://gh-proxy.com/%s\n' "$raw"
+  printf 'https://ghfast.top/%s\n' "$raw"
+  printf 'https://ghproxy.net/%s\n' "$raw"
+}
+
+# bootstrap.sh 下载使用比通用抓取更短的超时，避免网络受限时长时间等待。
+bootstrap_fetch() {
+  local url=$1 dest=$2
+  if have_cmd curl; then
+    curl -fsSL --connect-timeout 10 --max-time 90 --retry 1 --retry-delay 2 -o "$dest" "$url"
+    return
+  fi
+  if have_cmd wget; then
+    wget -q --tries=1 --timeout=30 -O "$dest" "$url"
+    return
+  fi
+  return 1
+}
+
 bootstrap_download() {
   local repo=$1 dest=$2
-  local url="https://raw.githubusercontent.com/$repo/main/bootstrap.sh"
   local candidate
   mkdir -p -- "$(dirname -- "$dest")" || return 1
   while IFS= read -r candidate; do
     [[ -n "$candidate" ]] || continue
     printf '下载 bootstrap.sh：%s\n' "$candidate" >&2
-    if fetch_url "$candidate" "$dest" && bootstrap_file_ok "$dest"; then
+    if bootstrap_fetch "$candidate" "$dest" && bootstrap_file_ok "$dest"; then
       return 0
     fi
     rm -f -- "$dest"
-  done < <(github_url_candidates "$url")
+  done < <(bootstrap_url_candidates "$repo")
   return 1
 }
 
