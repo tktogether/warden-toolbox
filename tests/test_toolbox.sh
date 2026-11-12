@@ -179,6 +179,17 @@ if [[ "$(id -u)" -ne 0 ]]; then
   check_contains "非 root 安装提示" "$out" "需要 root 权限"
 fi
 
+# ---- 项目仓库接入脚本 ----
+SHIM="$ROOT_DIR/integrations/toolbox-shim.sh"
+if [[ -f "$SHIM" ]]; then ok "提供项目仓库接入脚本"; else bad "提供项目仓库接入脚本" "文件不存在"; fi
+shim_content=$(cat "$SHIM" 2>/dev/null || true)
+check_contains "接入脚本指向独立仓库" "$shim_content" "tktogether/warden-toolbox"
+check_contains "接入脚本支持地址覆盖" "$shim_content" "WARDEN_TOOLBOX_URL"
+out=$(WARDEN_TOOLBOX_LOCAL="$TMP_DIR/fake-gateway.sh" bash "$SHIM" version 2>&1)
+rc=$?
+check_rc "接入脚本转发退出码" 0 "$rc"
+check_contains "接入脚本转发参数" "$out" "FAKE_GATEWAY version"
+
 # ---- 行尾与编码 ----
 cr_files=$(grep -rIl $'\r' --include='*.sh' --include='*.md' "$ROOT_DIR" 2>/dev/null || true)
 check_empty "脚本与文档为 LF 行尾" "$cr_files"

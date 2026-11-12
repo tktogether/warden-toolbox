@@ -50,6 +50,16 @@ sudo bash toolbox.sh gateway status
 
 全部失败时输出可操作提示，例如设置环境变量、先安装项目或在项目源码目录直接运行 `bootstrap.sh`。只读操作（`status`、`logs`、`version`、`self-test`）不需要 root 权限。
 
+## 接入已独立项目仓库
+
+项目仓库把 `toolbox.sh` 独立到本仓库后，可在其根目录放置转发脚本 `integrations/toolbox-shim.sh`：
+
+```bash
+cp integrations/toolbox-shim.sh /path/to/project/toolbox.sh
+```
+
+转发脚本下载本仓库的 `toolbox.sh` 并透传全部参数与退出码，旧用法 `bash toolbox.sh <操作>` 保持可用。调试时可用 `WARDEN_TOOLBOX_LOCAL` 指向本地脚本，或用 `WARDEN_TOOLBOX_URL` 指定下载地址；下载顺序为直连、gh-proxy.com、ghfast.top、ghproxy.net。
+
 ## 常用命令
 
 ```bash
@@ -92,6 +102,7 @@ toolbox/modules/common/       常用工具
 toolbox/modules/bbr/          BBR 模块
 toolbox/modules/gateway/      Warden Gateway 模块
 toolbox/modules/node-warden/  Node Warden 模块
+integrations/toolbox-shim.sh  项目仓库接入用转发脚本
 docs/MODULES.md               模块与依赖说明
 tests/test_toolbox.sh         本仓库测试
 VERSION                       版本号

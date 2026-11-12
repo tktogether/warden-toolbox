@@ -303,6 +303,7 @@ self_test() {
     "$TOOLBOX_ROOT"/toolbox/modules/*/module.sh \
     "$TOOLBOX_ROOT"/toolbox/modules/*/tools/*.sh \
     "$TOOLBOX_ROOT"/toolbox/modules/bbr/*.sh \
+    "$TOOLBOX_ROOT"/integrations/*.sh \
     "$TOOLBOX_ROOT"/tests/*.sh; do
     [[ -f "$file" ]] || continue
     if bash -n "$file"; then
