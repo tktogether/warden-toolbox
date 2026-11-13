@@ -102,10 +102,14 @@ toolbox_bootstrap_self() {
     exit 1
   fi
   rm -f "$tmp/source.tar.gz"
+  local status=0
   if [[ ! -t 0 ]] && ( exec </dev/tty ) 2>/dev/null; then
-    exec bash "$root/toolbox.sh" "$@" < /dev/tty
+    bash "$root/toolbox.sh" "$@" < /dev/tty || status=$?
+  else
+    bash "$root/toolbox.sh" "$@" || status=$?
   fi
-  exec bash "$root/toolbox.sh" "$@"
+  rm -rf "$tmp"
+  exit "$status"
 }
 
 if [[ ! -r "$SELF_DIR/toolbox/lib/common.sh" ]]; then

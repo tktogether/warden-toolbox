@@ -190,8 +190,45 @@ rc=$?
 check_rc "接入脚本转发退出码" 0 "$rc"
 check_contains "接入脚本转发参数" "$out" "FAKE_GATEWAY version"
 
+# ---- 自动获取源码后的临时目录清理 ----
+BOOT="$TMP_DIR/bootstrap-clean"
+mkdir -p "$BOOT/run" "$BOOT/tmpdir" "$BOOT/bin" "$BOOT/pkg"
+tar czf "$BOOT/pkg/src.tgz" -C "$ROOT_DIR" --exclude=.git .
+cp "$TOOLBOX" "$BOOT/run/toolbox.sh"
+cat > "$BOOT/bin/curl" <<'STUB'
+#!/usr/bin/env bash
+# 测试桩：把 local:// 地址映射到本地文件，其余地址一律失败。
+dest=""; url=""
+while (($#)); do
+  case "$1" in
+    -o) dest=$2; shift 2 ;;
+    -*) shift ;;
+    *) url=$1; shift ;;
+  esac
+done
+[[ "$url" == local://* ]] || exit 22
+cp "${url#local://}" "$dest"
+STUB
+chmod +x "$BOOT/bin/curl"
+
+out=$(PATH="$BOOT/bin:$PATH" TMPDIR="$BOOT/tmpdir" TOOLBOX_ARCHIVE_URL="local://$BOOT/pkg/src.tgz" bash "$BOOT/run/toolbox.sh" version 2>&1)
+rc=$?
+check_rc "自动获取源码后正常执行" 0 "$rc"
+check_contains "自动获取源码后输出正常" "$out" "Warden Toolbox"
+check_empty "自动获取源码后清理临时目录" "$(ls -A "$BOOT/tmpdir" 2>/dev/null)"
+
+out=$(PATH="$BOOT/bin:$PATH" TMPDIR="$BOOT/tmpdir" TOOLBOX_ARCHIVE_URL="local://$BOOT/pkg/src.tgz" bash "$BOOT/run/toolbox.sh" no-such-command 2>&1)
+rc=$?
+check_rc "自动获取源码后透传退出码" 1 "$rc"
+check_empty "失败时也清理临时目录" "$(ls -A "$BOOT/tmpdir" 2>/dev/null)"
+
 # ---- 行尾与编码 ----
-cr_files=$(grep -rIl $'\r' --include='*.sh' --include='*.md' "$ROOT_DIR" 2>/dev/null || true)
+cr_files=""
+while IFS= read -r -d '' f; do
+  if ! tr -d '\r' < "$f" | cmp -s - "$f"; then
+    cr_files+="${f}"$'\n'
+  fi
+done < <(find "$ROOT_DIR" -type f \( -name '*.sh' -o -name '*.md' \) -not -path '*/.git/*' -print0)
 check_empty "脚本与文档为 LF 行尾" "$cr_files"
 
 if (( FAIL > 0 )); then
